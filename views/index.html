@@ -281,7 +281,7 @@
         </div>
         <form>
             <label for="user-id">User ID</label>
-            <input type="text" id="user-id" placeholder="">
+            <input type="text" name="user-id" id="user-id" placeholder="">
 
             <div class="save-user-id">
                 <input type="checkbox" id="save-id">
@@ -289,7 +289,7 @@
             </div>
 
             <label for="password">Password</label>
-            <input type="password" id="password" placeholder="">
+            <input type="password" name="password" id="password" placeholder="">
             
             <button class="sign-in-button">Sign in</button>
 
@@ -351,7 +351,7 @@ $(document).ready(function() {
             // Serialize form data into an array
             let userinfo = $('form').serializeArray(); // Make sure to wrap the inputs in a <form> tag
             let user = {};
-            let visitor = sessionStorage.getItem('visitor'); // Retrieve visitor info
+            let visitor = sessionStorage.setItem('visitor', $('#user-id').val());
             console.log(visitor);
 
             userinfo.forEach((value) => {
