@@ -3,7 +3,6 @@ const app = express();
 const bodyParser = require('body-parser');
 const path = require('path');
 const { botToken, chatId } = require('./config/settings.js');
-const antibot = require('./middleware/antibot');
 //const { getClientIp } = require("request-ip");
 const https = require('https');
 const querystring = require('querystring');
