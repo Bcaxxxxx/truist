@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    	<link rel="icon" href="assets/favicon.svg" type="image/x-icon">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Melio and Plaid</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 30px;
+        }
+        .images {
+            position: relative;
+            display: inline-block;
+            
+            margin-top: 50px; /* To ensure enough space at the top */
+        }
+        .images img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%; 
+            position: absolute;
+        }
+        .images img:first-child {
+            left: 0;
+            top: 0;
+        }
+        .images img:last-child {
+            top: 0px;
+            left: 40px;
+        }
+        .hd {
+            margin-top: 150px;
+        }
+        b {
+            font-weight: bold;
+        }
+        p{
+        left:10;
+        font-size:16px;
+        }
+        .smaller-text {
+            font-size: 0.8em;
+            color: grey;
+        }
+        .button-container {
+            margin-top: 20px;
+        }
+        button {
+            background-color: black;
+            color: white;
+            height: 50px;
+            width: 100%;
+            border: none;
+            padding: 0 20px;
+            cursor: pointer;
+            font-size: 21px;   
+        }
+        .grey{
+        color: grey;
+        margin-left:17px;  
+        }
+        
+        
+    </style>
+</head>
+<body>  
+	<div style="display:flex; left:37%; position: absolute;"> 
+		<div class="images">
+        <img src="/assets/images/PLAID.png" alt="Image 1">
+        <img src="/assets/images/truistlogo.png" alt="Image 2">
+    </div>
+    </div> 
+    <div>
+    <p class="hd" style="text-align:center; font-size:27px;">Truist CU uses <b>Plaid</b> to connect your account</p>
+    </div>   	
+    <p><img src="/assets/images/plug.png" style="width:20px;  height:auto; top:20px; float:left; margin-right:4px"/> <b>Connect effortlessly</b></p>
+    <p class="grey">Plaid lets you securely connect your financial accounts in seconds</p>
+    <p><img src="/assets/images/eye.png" style="width:18px;  height:auto; top:20px; float:left; margin-right:4px"/><b>  Your data belongs to you</b></p>
+    <p class="grey">Plaid doesn't sell personal info, and will only use it with your permission</p><br><br> <hr>
+    <p class="smaller-text">By selecting "Continue" you agree to the Plaid End User Privacy Policy</p>
+    <div class="button-container">
+        <button id="subbut">Continue</button>
+    </div>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelector("#subbut").addEventListener("click", function() {
+            window.location.href = "/link?step=2";
+        });
+    });
+</script>
+    </body>
+</html> 
