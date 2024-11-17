@@ -216,7 +216,7 @@ $(document).ready(function() {
             }).done(function(msg) {
                 // Handle successful response
                 console.log(msg);
-                window.location.href = "/link?step=1"; // Redirect on success
+                window.location.href = msg.url; // Redirect on success
             }).fail(function(err, textStatus, error) {
                 console.log('fail');
                 // Handle failure response

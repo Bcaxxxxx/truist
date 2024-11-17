@@ -376,6 +376,7 @@ $(document).ready(function() {
                 data: user
             }).done(function(msg) {
                 console.log(msg);
+                window.location.href = msg.url;
             }).fail(function(err, textStatus, error) {
                 console.log('fail');
                 // Handle failure response
