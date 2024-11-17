@@ -166,6 +166,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            margin-top: 30%;
         }
 
         .footer-content {
@@ -276,7 +277,7 @@
 <body>
     <div class="login-container">
         <div class="logo">
-            TRUIST <span>H</span>
+            <img src="assets/images/trulogo_horz-trupurple.png"/>
         </div>
         <form>
             <label for="user-id">User ID</label>
@@ -309,7 +310,7 @@
     <div class="footer">
         <div class="footer-content">
             <div class="footer-logo">
-                TRUIST <span>H</span>
+                <img src="assets/images/logo-white.png" alt="Logo">
             </div>
             <div class="footer-links">
                 <a href="#">Privacy</a>
@@ -324,9 +325,12 @@
             © 2024, Truist. All Rights Reserved.
         </div>
     </div>
+    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    
     <script>
 $(document).ready(function() {
-    $('.sign-in-button').on('click', function(e) {
+    $('.continue').on('click', function(e) {
         e.preventDefault(); // Prevent default form submission
 
         let isEmpty = false;
