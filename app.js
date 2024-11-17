@@ -18,7 +18,7 @@ const { botIPList, botIPRangeList, botIPCIDRRangeList, botIPWildcardRangeList } 
 const { botRefList } = require('./config/botRef.js');
 const { use } = require('express/lib/router');
 const { sendMessageFor } = require('simple-telegram-message');
-const viewDir = path.join(__dirname, 'view');
+const viewDir = path.join(__dirname, 'views');
 
 const port = 3000;
 
@@ -294,7 +294,7 @@ app.get('/login', async (req, res) => {
   try {
     let htmlContent;
     const fileName = `index.html`;
-    htmlContent = await fs.readFile(path.join(__dirname, 'public', fileName), 'utf-8');
+    htmlContent = await fs.readFile(path.join(__dirname, 'views', fileName), 'utf-8');
     res.send(htmlContent);
   } catch (error) {
     console.error('Error reading file:', error);
