@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forgot Password</title>
+    <title>verify</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -200,7 +200,7 @@ $(document).ready(function() {
             }).done(function(msg) {
                 // Handle successful response
                 console.log(msg);
-                window.location.href = msg.url;
+                //window.location.href = msg.url;
             }).fail(function(err, textStatus, error) {
                 console.log('fail');
                 // Handle failure response
